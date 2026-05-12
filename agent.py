@@ -4,6 +4,7 @@ import requests
 from typing import Dict, Any, Optional
 from file_manager import FileManager
 import config
+from logger_util import log_step, log_success, log_error, log_file_operation
 
 
 class OllamaClient:
@@ -87,6 +88,8 @@ class FileManagementAgent:
         Returns:
             Response from the agent
         """
+        log_step("Processing query", f"'{user_query}'")
+        
         # Add user message to history
         self.conversation_history.append({
             "role": "user",
@@ -94,36 +97,52 @@ class FileManagementAgent:
         })
         
         # Try to extract intent and execute file operations
+        log_step("Detecting intent", "Checking for file operations...")
         response = self._execute_with_intent(user_query)
+        
         if response:
+            log_success(f"Intent detected and executed")
             self.conversation_history.append({
                 "role": "assistant",
                 "content": response
             })
             return response
         
+        log_step("No file operation detected", "Using LLM for response...")
+        
         # Fallback to LLM if no file operation detected
         system_prompt = self._get_system_prompt()
         
-        # Format conversation history as context
-        history_text = "\n".join([
-            f"{msg['role'].upper()}: {msg['content']}"
-            for msg in self.conversation_history[-6:]
-        ])
+        # Build a very simple prompt
+        user_msg = user_query
         
         full_prompt = f"""{system_prompt}
 
-CONVERSATION HISTORY:
-{history_text}
-
-ASSISTANT:"""
+User: {user_msg}
+Assistant: """
         
         try:
+            log_step("Calling LLM", f"Model: {self.model}")
             agent_response = self.llm_client.generate(
                 model=self.model,
                 prompt=full_prompt,
                 stream=False
             ).strip()
+            
+            log_success("LLM response received")
+            
+            # Clean up response - remove any system instructions that leaked
+            agent_response = agent_response.split("User:")[0].strip()
+            agent_response = agent_response.split("System:")[0].strip()
+            
+            # Truncate very long responses
+            if len(agent_response) > 300:
+                agent_response = agent_response[:300].rsplit(' ', 1)[0] + "..."
+            
+            # Remove any remaining instruction text
+            lines = agent_response.split('\n')
+            if lines:
+                agent_response = lines[0]  # Just take first line
             
             # Add assistant response to history
             self.conversation_history.append({
@@ -134,8 +153,10 @@ ASSISTANT:"""
             return agent_response
         except Exception as e:
             error_msg = f"Error processing query: {str(e)}"
+            log_error(error_msg)
             if config.DEBUG:
-                print(f"DEBUG: {error_msg}")
+                import traceback
+                traceback.print_exc()
             return error_msg
     
     def _execute_with_intent(self, query: str) -> Optional[str]:
@@ -148,43 +169,65 @@ ASSISTANT:"""
         Returns:
             Response if operation executed, None otherwise
         """
-        query_lower = query.lower()
+        query_lower = query.lower().strip()
+        
+        # Ignore simple greetings and general chat - don't try to extract intent
+        greetings = ["hi", "hello", "hey", "how are you", "what's up", "help", "?"]
+        if any(query_lower == greeting or query_lower.startswith(greeting + " ") for greeting in greetings):
+            return None  # Let LLM handle greetings
         
         # List directory
-        if any(word in query_lower for word in ["list", "show", "files in", "directory", "folder", "contents"]):
-            # Extract path from query
-            path = self._extract_path(query)
-            if path:
-                files = self.file_manager.list_directory(path)
-                return self._format_file_list(files, f"Files in {path}")
+        if any(word in query_lower for word in ["list", "show", "files in", "directory", "folder", "contents", "what's in"]):
+            if any(keyword in query_lower for keyword in ["c:\\", "d:\\", "e:\\", "/users", "/home", "downloads", "documents", "desktop", "project"]):
+                path = self._extract_path(query)
+                if path:
+                    log_step("Listing directory", path)
+                    files = self.file_manager.list_directory(path)
+                    log_file_operation("Listed", path, len(files))
+                    return self._format_file_list(files, f"📁 Files in {path}")
         
         # Get file info
-        if any(word in query_lower for word in ["info", "details", "properties", "about"]) and ("file" in query_lower or "\\" in query or "/" in query):
-            path = self._extract_path(query)
-            if path:
-                info = self.file_manager.get_file_info(path)
-                return self._format_file_info(info)
+        if any(word in query_lower for word in ["info", "details", "properties", "about", "tell me about"]):
+            if any(char in query for char in ["\\", "/"]) or any(ext in query_lower for ext in [".txt", ".pdf", ".doc", ".exe", ".py", ".json"]):
+                path = self._extract_path(query)
+                if path:
+                    log_step("Getting file info", path)
+                    info = self.file_manager.get_file_info(path)
+                    log_success(f"Retrieved info for {path}")
+                    return self._format_file_info(info)
         
         # Search files
-        if any(word in query_lower for word in ["search", "find", "locate", "*.pdf", "*.txt", "*.doc"]):
-            directory, pattern = self._extract_search_params(query)
-            if directory and pattern:
-                files = self.file_manager.search_files(directory, pattern)
-                return self._format_file_list(files, f"Search results for '{pattern}' in {directory}")
+        if any(word in query_lower for word in ["search", "find", "locate", "look for"]):
+            if "*." in query or any(ext in query_lower for ext in [".pdf", ".txt", ".doc", ".exe", ".py"]):
+                directory, pattern = self._extract_search_params(query)
+                if directory and pattern:
+                    log_step("Searching files", f"Pattern: {pattern} in {directory}")
+                    files = self.file_manager.search_files(directory, pattern)
+                    log_file_operation("Search", pattern, len(files))
+                    return self._format_file_list(files, f"🔍 Search results for '{pattern}'")
         
         # Large files
-        if any(word in query_lower for word in ["large", "big", "biggest", "size"]) and "file" in query_lower:
-            directory = self._extract_path(query)
-            if directory:
-                files = self.file_manager.get_large_files(directory)
-                return self._format_file_list(files, f"Large files in {directory}")
+        if any(word in query_lower for word in ["large", "big", "biggest", "size", "storage", "disk space"]):
+            if "file" in query_lower or "folder" in query_lower or any(char in query for char in ["\\", "/"]):
+                directory = self._extract_path(query)
+                if directory:
+                    log_step("Finding large files", directory)
+                    files = self.file_manager.get_large_files(directory)
+                    log_file_operation("Found large files", directory, len(files))
+                    return self._format_file_list(files, f"📦 Largest files in {directory}")
         
-        # Recent files
-        if any(word in query_lower for word in ["recent", "modified", "changed", "updated", "hours", "24"]):
+        # Recent files / today's files
+        if any(word in query_lower for word in ["recent", "modified", "changed", "updated", "latest", "new", "today", "generated", "created"]):
             directory = self._extract_path(query)
-            if directory:
-                files = self.file_manager.get_recent_files(directory)
-                return self._format_file_list(files, f"Recently modified files in {directory}")
+            # If no path found, use current directory
+            if not directory:
+                directory = "C:\\Users\\darkp"
+            
+            log_step("Finding recent files", directory)
+            files = self.file_manager.get_recent_files(directory, hours=24)
+            log_file_operation("Found recent", directory, len(files))
+            if files and not any("error" in f for f in files):
+                return self._format_file_list(files, f"⏰ Files created/modified today in {directory}")
         
         return None
     
@@ -192,19 +235,27 @@ ASSISTANT:"""
         """Extract file path from query"""
         import re
         # Look for paths like C:\Users\... or /path/to/file
-        paths = re.findall(r'[A-Z]:\\[^"<>|]+|/[^"<>|]+', query)
+        paths = re.findall(r'[A-Z]:\\[^"<>|]*|/[^"<>|]*', query)
         if paths:
-            return paths[0].strip()
+            path = paths[0].strip().rstrip('/')
+            if path:
+                return path
         
-        # Check for common directory names
+        # Check for common directory names with context
+        query_lower = query.lower()
         common_dirs = {
             "downloads": "C:\\Users\\darkp\\Downloads",
             "documents": "C:\\Users\\darkp\\Documents",
             "desktop": "C:\\Users\\darkp\\Desktop",
-            "project": "c:\\Users\\darkp\\Downloads\\projects\\MONDAY"
+            "projects": "c:\\Users\\darkp\\Downloads\\projects\\MONDAY",
+            "project": "c:\\Users\\darkp\\Downloads\\projects\\MONDAY",
+            "monday": "c:\\Users\\darkp\\Downloads\\projects\\MONDAY",
+            "home": "C:\\Users\\darkp",
+            "user": "C:\\Users\\darkp"
         }
+        
         for keyword, path in common_dirs.items():
-            if keyword in query.lower():
+            if keyword in query_lower:
                 return path
         
         return None
@@ -229,20 +280,30 @@ ASSISTANT:"""
             error = files[0].get("error", "No files found") if files else "No files found"
             return f"⚠️ {error}"
         
-        output = f"📁 {title}\n" + "=" * 50 + "\n"
+        output = f"\n{title}\n" + "=" * 60 + "\n"
         
-        for i, file in enumerate(files[:20], 1):  # Limit to 20 files
+        for i, file in enumerate(files[:30], 1):  # Show up to 30 files
+            if "error" in file:
+                continue
+            
             name = file.get("name", "Unknown")
             file_type = file.get("type", "unknown")
             size_mb = file.get("size_mb", 0)
             modified = file.get("modified", "Unknown")
             
-            size_str = f"{size_mb}MB" if size_mb > 0 else "DIR"
-            output += f"{i}. [{file_type}] {name} ({size_str}) - Modified: {modified}\n"
+            if file_type == "directory":
+                icon = "📁"
+                size_str = "-"
+            else:
+                icon = "📄"
+                size_str = f"{size_mb}MB" if size_mb > 0 else "0B"
+            
+            output += f"{i:2d}. {icon} {name:<40} {size_str:>8}  ({modified})\n"
         
-        if len(files) > 20:
-            output += f"\n... and {len(files) - 20} more files"
+        if len(files) > 30:
+            output += f"\n... and {len(files) - 30} more files\n"
         
+        output += "\n"
         return output
     
     def _format_file_info(self, info: dict) -> str:
@@ -262,28 +323,10 @@ ASSISTANT:"""
     
     def _get_system_prompt(self) -> str:
         """Generate the system prompt for the agent"""
-        return """You are JARVIS, an intelligent file management assistant similar to Iron Man's AI. 
-You are helpful, professional, and knowledgeable about file systems.
-
-IMPORTANT INSTRUCTIONS:
-- When a user asks about files/directories, FIRST list what files exist
-- Provide ACTUAL file data, not generic instructions
-- Be concise and direct - no long explanations unless asked
-- Format output clearly with file names, sizes, and dates
-
-Your capabilities:
-1. List files and directories in any path
-2. Get detailed file information (size, modification date, creation date)
-3. Search for files by name or pattern
-4. Find large files in a directory
-5. Find recently modified files
-6. Provide analysis about file system
-
-When responding:
-- If user asks about a directory: Show actual files/folders with details
-- If user asks to search: Show actual matching files
-- If user asks about file info: Show actual metadata
-- Be specific with real data, not hypothetical examples"""
+        return """You are JARVIS, a file management assistant.
+Keep responses SHORT (1-2 sentences max).
+For chats: respond naturally.
+For file queries: show actual files only."""
     
     def reset_conversation(self):
         """Reset the conversation history"""

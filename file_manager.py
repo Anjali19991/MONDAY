@@ -68,8 +68,29 @@ class FileManager:
             if not path_obj.exists():
                 return []
             
-            matches = list(path_obj.rglob(pattern))
-            return [self._get_item_info(match) for match in matches[:50]]
+            import fnmatch
+            matches = []
+            max_depth = 3  # Limit search depth
+            
+            def search_recursive(current_path, depth):
+                if depth > max_depth or len(matches) > 100:  # Limit results
+                    return
+                try:
+                    for item in current_path.iterdir():
+                        if len(matches) > 100:
+                            break
+                        try:
+                            if item.is_file() and fnmatch.fnmatch(item.name, pattern):
+                                matches.append(self._get_item_info(item))
+                            elif item.is_dir() and depth < max_depth:
+                                search_recursive(item, depth + 1)
+                        except (PermissionError, OSError):
+                            continue
+                except (PermissionError, OSError):
+                    pass
+            
+            search_recursive(path_obj, 0)
+            return matches[:100]  # Return max 100 results
         except Exception as e:
             return [{"error": str(e)}]
     
@@ -91,10 +112,27 @@ class FileManager:
             
             min_bytes = min_size_mb * 1024 * 1024
             large_files = []
+            max_depth = 2  # Limit search depth
             
-            for file_path in path_obj.rglob("*"):
-                if file_path.is_file() and file_path.stat().st_size > min_bytes:
-                    large_files.append(self._get_item_info(file_path, detailed=True))
+            def search_recursive(current_path, depth):
+                if depth > max_depth or len(large_files) > 50:  # Limit to 50 files
+                    return
+                try:
+                    for item in current_path.iterdir():
+                        if len(large_files) > 50:
+                            break
+                        try:
+                            if item.is_file():
+                                if item.stat().st_size > min_bytes:
+                                    large_files.append(self._get_item_info(item, detailed=True))
+                            elif item.is_dir() and depth < max_depth:
+                                search_recursive(item, depth + 1)
+                        except (PermissionError, OSError):
+                            continue
+                except (PermissionError, OSError):
+                    pass
+            
+            search_recursive(path_obj, 0)
             
             # Sort by size descending
             large_files.sort(key=lambda x: x.get("size_mb", 0), reverse=True)
@@ -123,9 +161,26 @@ class FileManager:
             cutoff_time = current_time - (hours * 3600)
             
             recent_files = []
-            for file_path in path_obj.rglob("*"):
-                if file_path.is_file() and file_path.stat().st_mtime > cutoff_time:
-                    recent_files.append(self._get_item_info(file_path, detailed=True))
+            max_depth = 2  # Limit search depth
+            
+            def search_recursive(current_path, depth):
+                if depth > max_depth or len(recent_files) > 50:  # Limit to 50 files
+                    return
+                try:
+                    for item in current_path.iterdir():
+                        if len(recent_files) > 50:
+                            break
+                        try:
+                            if item.is_file() and item.stat().st_mtime > cutoff_time:
+                                recent_files.append(self._get_item_info(item, detailed=True))
+                            elif item.is_dir() and depth < max_depth:
+                                search_recursive(item, depth + 1)
+                        except (PermissionError, OSError):
+                            continue
+                except (PermissionError, OSError):
+                    pass
+            
+            search_recursive(path_obj, 0)
             
             # Sort by modification time descending
             recent_files.sort(key=lambda x: x.get("modified_timestamp", 0), reverse=True)
