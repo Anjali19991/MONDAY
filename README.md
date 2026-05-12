@@ -16,7 +16,8 @@ JARVIS is an intelligent assistant designed to:
 
 - **Language:** Python 3.8+
 - **LLM Provider:** Ollama (Open Source - 100% Free)
-- **Supported Models:** Llama 2, Mistral, Neural-Chat, and more
+- **Default Model:** TinyLlama (1.1B - Lightweight, ~1.1GB)
+- **Supported Models:** Gemma 2B, Orca Mini, Llama 2, Mistral, and more
 - **File System:** Python's `pathlib`
 - **API Communication:** `requests`
 - **Environment Management:** `python-dotenv`
@@ -27,15 +28,16 @@ JARVIS is an intelligent assistant designed to:
 
 Download and install Ollama from **[https://ollama.ai](https://ollama.ai)**
 
-After installation, download a model:
+After installation, download TinyLlama (lightweight, ~1.1GB):
 ```bash
-ollama run llama2
+ollama run tinyllama
 ```
 
-Or try other models:
+Or try other lightweight models:
 ```bash
-ollama run mistral
-ollama run neural-chat
+ollama run gemma:2b      # Ultra-lightweight, ~2GB
+ollama run orca-mini     # Small, high-quality
+ollama run neural-chat   # Good for conversations
 ```
 
 Ollama will run on `http://localhost:11434` by default.
@@ -68,7 +70,10 @@ The `.env` is optional—defaults work for standard Ollama setup. Edit only if y
 python main.py
 ```
 
-This starts an interactive conversation with JARVIS.
+This starts an interactive conversation with JARVIS. Make sure Ollama is running with TinyLlama:
+```bash
+ollama run tinyllama
+```
 
 ### Example Queries
 
@@ -105,18 +110,24 @@ MONDAY/
 
 ## Configuration
 
-Edit `.env` to customize:
+Edit `.env` to customize (optional):
 
 ```env
 # LLM Configuration
-OPENAI_API_KEY=your_key_here
-AGENT_MODEL=gpt-4
+OLLAMA_API_URL=http://localhost:11434
+AGENT_MODEL=tinyllama
 MAX_TOKENS=2000
 TEMPERATURE=0.7
 
 # Debug mode (optional)
 DEBUG=False
 ```
+
+**Available lightweight models:**
+- `tinyllama` - 1.1B (default, recommended) ~1.1GB
+- `gemma:2b` - 2B (ultra-lightweight) ~2GB
+- `orca-mini` - 3B (good quality) ~3GB
+- `neural-chat` - 7B (better conversations)
 
 ## Features
 
@@ -148,16 +159,23 @@ During conversation:
 
 ### "Cannot connect to Ollama"
 1. Make sure Ollama is installed: [https://ollama.ai](https://ollama.ai)
-2. Start Ollama and run a model:
+2. Start Ollama and run TinyLlama:
    ```bash
-   ollama run llama2
+   ollama run tinyllama
    ```
 3. Verify it's running at `http://localhost:11434`
 
-### "Model not found"
-Download a model first:
+### "Model requires more system memory"
+Download a smaller model:
 ```bash
-ollama run llama2
+ollama run tinyllama      # 1.1GB (recommended for limited RAM)
+ollama run gemma:2b       # 2GB (ultra-lightweight)
+```
+
+### "Model not found"
+Download the model first:
+```bash
+ollama run tinyllama
 ```
 
 ### "Permission denied" on file access

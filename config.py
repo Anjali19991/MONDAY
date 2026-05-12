@@ -8,7 +8,7 @@ load_dotenv()
 # LLM Configuration (Open Source - Ollama)
 LLM_PROVIDER = "ollama"
 OLLAMA_API_URL = os.getenv("OLLAMA_API_URL", "http://localhost:11434")
-AGENT_MODEL = os.getenv("AGENT_MODEL", "llama2")
+AGENT_MODEL = os.getenv("AGENT_MODEL", "tinyllama")
 
 # Agent Behavior Configuration
 MAX_TOKENS = int(os.getenv("MAX_TOKENS", "2000"))
