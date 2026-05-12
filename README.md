@@ -196,9 +196,15 @@ python main.py
 
 ## License
 
-MIT License - Feel free to use and modify
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Author
+## Author & Certificate
 
-Created by: Anjali19991
-Project: MONDAY - Intelligent File Management Agent" 
+**Created by:** Anjali19991  
+**Project:** MONDAY - Intelligent File Management Agent  
+**Version:** 1.0.0  
+**License:** MIT  
+**GitHub:** [@Anjali19991](https://github.com/Anjali19991/MONDAY)  
+
+### Copyright Notice
+Copyright © 2026 Anjali19991. All rights reserved." 
