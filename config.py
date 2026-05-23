@@ -1,4 +1,4 @@
-"""Configuration module for JARVIS File Management Agent"""
+"""Configuration module for Monday File Management Agent"""
 import os
 from dotenv import load_dotenv
 

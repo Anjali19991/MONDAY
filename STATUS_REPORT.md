@@ -1,9 +1,9 @@
-# JARVIS File Management Agent - Final Status Report
+# Monday File Management Agent - Final Status Report
 
 ## ✅ SYSTEM STATUS: FULLY OPERATIONAL
 
 ### Project Overview
-**MONDAY** - JARVIS-like File Management Agent
+**MONDAY** - Monday-like File Management Agent
 - **Purpose:** Intelligent AI assistant for file system queries
 - **Tech Stack:** Python, Flask, Ollama (TinyLlama), Open Source
 - **Status:** Production Ready ✓
@@ -218,7 +218,7 @@ Search for *.pdf files
 ```
 MONDAY/
 ├── app.py                    # Flask web server
-├── agent.py                  # JARVIS agent logic
+├── agent.py                  # Monday agent logic
 ├── file_manager.py           # File operations
 ├── config.py                 # Configuration
 ├── logger_util.py            # Logging system
@@ -319,7 +319,7 @@ python app.py
 
 ## 🎉 CONCLUSION
 
-**JARVIS File Management Agent is fully operational and production-ready.**
+**Monday File Management Agent is fully operational and production-ready.**
 
 All core features are implemented and tested:
 - ✓ File system queries working

@@ -1,4 +1,4 @@
-"""Test suite for JARVIS File Management Agent"""
+"""Test suite for Monday File Management Agent"""
 import os
 import sys
 from pathlib import Path
@@ -121,7 +121,7 @@ def test_agent():
 def run_all_tests():
     """Run all tests"""
     print("\n" + "="*60)
-    print("JARVIS FILE MANAGEMENT AGENT - COMPREHENSIVE TEST")
+    print("Monday FILE MANAGEMENT AGENT - COMPREHENSIVE TEST")
     print("="*60)
     
     # Test File Manager

@@ -1,4 +1,4 @@
-"""Logging module for JARVIS"""
+"""Logging module for Monday"""
 import logging
 import sys
 from datetime import datetime
@@ -20,7 +20,7 @@ class ColoredFormatter(logging.Formatter):
         record.levelname = f"{log_color}[{record.levelname}]{self.RESET}"
         return super().format(record)
 
-def setup_logger(name="jarvis"):
+def setup_logger(name="Monday"):
     """Setup logger with colored output"""
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)

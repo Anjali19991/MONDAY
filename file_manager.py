@@ -1,4 +1,4 @@
-"""File management utilities for JARVIS agent"""
+"""File management utilities for Monday agent"""
 import os
 import pathlib
 from datetime import datetime

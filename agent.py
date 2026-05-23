@@ -1,4 +1,4 @@
-"""JARVIS-like File Management Agent using Open Source LLM (Ollama)"""
+"""Monday-like File Management Agent using Open Source LLM (Ollama)"""
 import json
 import requests
 from typing import Dict, Any, Optional
@@ -51,7 +51,7 @@ class OllamaClient:
 
 
 class FileManagementAgent:
-    """JARVIS-like agent for handling file-related queries"""
+    """Monday-like agent for handling file-related queries"""
     
     def __init__(self):
         self.file_manager = FileManager()
@@ -323,7 +323,7 @@ Assistant: """
     
     def _get_system_prompt(self) -> str:
         """Generate the system prompt for the agent"""
-        return """You are JARVIS, a file management assistant.
+        return """You are Monday, a file management assistant.
 Keep responses SHORT (1-2 sentences max).
 For chats: respond naturally.
 For file queries: show actual files only."""

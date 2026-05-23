@@ -1,4 +1,4 @@
-"""Main entry point for JARVIS File Management Agent"""
+"""Main entry point for Monday File Management Agent"""
 import sys
 from agent import FileManagementAgent
 import config
@@ -7,7 +7,7 @@ import config
 def print_welcome():
     """Print welcome message"""
     print("=" * 60)
-    print("JARVIS - File Management Agent")
+    print("Monday - File Management Agent")
     print("=" * 60)
     print("I am your intelligent file management assistant.")
     print("Ask me about files, directories, and more!")
@@ -45,10 +45,10 @@ def main():
                     continue
                 
                 # Process query
-                print("\nJARVIS: Processing...", end="", flush=True)
+                print("\nMonday: Processing...", end="", flush=True)
                 response = agent.process_query(user_input)
                 print("\r" + " " * 30 + "\r", end="")  # Clear the "Processing..." message
-                print(f"JARVIS: {response}")
+                print(f"Monday: {response}")
                 
             except KeyboardInterrupt:
                 print("\n\nInterrupted by user. Type 'quit' to exit.")

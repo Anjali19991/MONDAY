@@ -1,4 +1,4 @@
-"""Flask web server for JARVIS UI"""
+"""Flask web server for Monday UI"""
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from agent import FileManagementAgent
@@ -95,7 +95,7 @@ def health():
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("JARVIS - File Management Agent (Web UI)")
+    print("Monday - File Management Agent (Web UI)")
     print("=" * 60)
     log_step("Initializing", f"Model: {config.AGENT_MODEL}")
     log_step("Ollama", f"URL: {config.OLLAMA_API_URL}")

@@ -9,7 +9,7 @@ timeout /t 3 /nobreak
 REM Activate virtual environment and run Flask app
 call .venv\Scripts\activate
 echo.
-echo Starting JARVIS Web UI...
+echo Starting Monday Web UI...
 echo.
 echo Open your browser at: http://localhost:5000
 echo.

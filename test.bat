@@ -1,9 +1,9 @@
 @echo off
-REM Test JARVIS File Management Agent
+REM Test Monday File Management Agent
 
 echo.
 echo ========================================
-echo JARVIS - Test Suite
+echo Monday - Test Suite
 echo ========================================
 echo.
 

@@ -1,10 +1,10 @@
-"# MONDAY - JARVIS File Management Agent
+"# MONDAY - Monday File Management Agent
 
-A conversational AI agent inspired by Iron Man's JARVIS that intelligently handles all file management queries. Ask natural language questions about your files and get instant, detailed responses.
+A conversational AI agent inspired by Iron Man's Monday that intelligently handles all file management queries. Ask natural language questions about your files and get instant, detailed responses.
 
 ## Overview
 
-JARVIS is an intelligent assistant designed to:
+Monday is an intelligent assistant designed to:
 - **List and explore** files and directories naturally
 - **Find large files** taking up disk space
 - **Search for files** by name or pattern
@@ -70,7 +70,7 @@ The `.env` is optional—defaults work for standard Ollama setup. Edit only if y
 python main.py
 ```
 
-This starts an interactive conversation with JARVIS. Make sure Ollama is running with TinyLlama:
+This starts an interactive conversation with Monday. Make sure Ollama is running with TinyLlama:
 ```bash
 ollama run tinyllama
 ```
@@ -79,19 +79,19 @@ ollama run tinyllama
 
 ```
 You: Show me all files in C:\Users\Downloads
-JARVIS: [Lists all files with details]
+Monday: [Lists all files with details]
 
 You: Find large files in my Documents folder
-JARVIS: [Shows files over 10MB, sorted by size]
+Monday: [Shows files over 10MB, sorted by size]
 
 You: What files were modified in the last 24 hours?
-JARVIS: [Lists recent files with modification times]
+Monday: [Lists recent files with modification times]
 
 You: Search for *.pdf files
-JARVIS: [Finds all PDF files with their locations]
+Monday: [Finds all PDF files with their locations]
 
 You: Get detailed info about C:\path\to\file.txt
-JARVIS: [Shows file metadata and analysis]
+Monday: [Shows file metadata and analysis]
 ```
 
 ## Project Structure
@@ -99,7 +99,7 @@ JARVIS: [Shows file metadata and analysis]
 ```
 MONDAY/
 ├── main.py              # Entry point - interactive conversation loop
-├── agent.py             # JARVIS agent logic and LLM integration
+├── agent.py             # Monday agent logic and LLM integration
 ├── file_manager.py      # File system utilities and operations
 ├── config.py            # Configuration and environment setup
 ├── requirements.txt     # Python dependencies
